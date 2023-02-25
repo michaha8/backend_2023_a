@@ -148,6 +148,8 @@ router.get('/refresh',auth.refresh)
  *
  */
 router.get('/logout',auth.logout)
+router.get('/',auth.getUserInfo)
+router.put('/',auth.updateUser)
 
 export = router
 
