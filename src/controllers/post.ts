@@ -1,5 +1,6 @@
 import Post from '../models/post_model';
 import { Request, Response } from 'express';
+import User from '../models/user_model';
 
 const getAllPostsEvent = async () => {
   console.log('getAllPostsEventgetAllPostsEventgetAllPostsEvent');
@@ -13,10 +14,16 @@ const getAllPostsEvent = async () => {
 
 const getAllPosts = async (req: Request, res: Response) => {
   try {
-    let posts = {};
+    let posts: any[] = [];
     console.log('here getting posts');
     if (req.query.sender == null) {
       posts = await Post.find();
+      console.log({...posts} );
+      const promises = posts.map(async (p) => ({
+        ...p._doc,
+        userImage: await getUserImageById(p.sender),
+      }));
+      posts = await Promise.all(promises);
     } else {
       posts = await Post.find({ sender: req.query.sender });
     }
@@ -27,6 +34,20 @@ const getAllPosts = async (req: Request, res: Response) => {
     res.status(400).send({ error: 'fail to get posts from db' });
   }
 };
+
+async function getUserImageById(id: string) {
+  try {
+    console.log('getUserImageById');
+    try {
+      const user = await User.findById(id);
+      return user?.image || '';
+    } catch (err) {
+      console.log(err);
+    }
+  } catch (err) {
+    console.log({ err });
+  }
+}
 
 const getPostById = async (req: Request, res: Response) => {
   console.log(req.params.id);
@@ -41,11 +62,10 @@ const getPostById = async (req: Request, res: Response) => {
 
 const addNewPost = async (req: Request, res: Response) => {
   console.log('addNewPostaddNewPost', req.body);
-
   const post = new Post({
-    _id: req.body.id,
     message: req.body.message,
-    sender: req.body.userId, //extract the user id from the auth
+    sender: req.body.userId,
+    image: req.body.image,
   });
 
   try {
@@ -53,7 +73,7 @@ const addNewPost = async (req: Request, res: Response) => {
     console.log('save post in db');
     res.status(200).send(newPost);
   } catch (err) {
-    console.log('fail to save post in db');
+    console.log('fail to save post in db',err);
     res.status(400).send({ error: 'fail adding new post to db' });
   }
 };

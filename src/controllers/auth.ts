@@ -14,7 +14,8 @@ const register = async (req: Request, res: Response) => {
   const email = req.body.email;
   const password = req.body.password;
   const name = req.body.name;
-  console.log({ email, password, name });
+  const image = req.body.image;
+  console.log({ email, password, name, image });
 
   if (email == null || password == null) {
     return sendError(res, 'please provide valid email and password');
@@ -32,6 +33,7 @@ const register = async (req: Request, res: Response) => {
       email,
       password: encryptedPwd,
       name,
+      image,
     });
     console.log({ newUser });
     await newUser.save();
@@ -39,6 +41,7 @@ const register = async (req: Request, res: Response) => {
       email: email,
       _id: newUser._id,
       name,
+      image,
     });
   } catch (err) {
     return sendError(res, 'fail ...');
@@ -212,6 +215,7 @@ const updateUser = async (req: Request, res: Response) => {
     email: updatedUser.email,
     name: updatedUser.name,
     password: updatedUser.password,
+    image: updatedUser?.image,
     refresh_tokens: updatedUser.refresh_tokens,
   };
   console.log({ userToSave });
@@ -224,6 +228,8 @@ const updateUser = async (req: Request, res: Response) => {
     return sendError(res, 'fail ...' + err);
   }
 };
+
+
 export = {
   login,
   refresh,
@@ -232,4 +238,5 @@ export = {
   authenticateMiddleware,
   getUserInfo,
   updateUser,
+  
 };
