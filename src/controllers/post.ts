@@ -41,7 +41,7 @@ async function getUserData(id: string) {
     console.log('getUserImageById');
     try {
       const user = await User.findById(id);
-      return { image: user?.image || '', name: user.name };
+      return { image: user?.image || '', name: user?.name||'' };
     } catch (err) {
       console.log(err);
     }
