@@ -18,29 +18,30 @@ const getAllPosts = async (req: Request, res: Response) => {
     console.log('here getting posts');
     if (req.query.sender == null) {
       posts = await Post.find();
-      console.log({...posts} );
-      const promises = posts.map(async (p) => ({
-        ...p._doc,
-        userImage: await getUserImageById(p.sender),
-      }));
+      const promises = posts.map(async (p) => {
+        const { image, name } = await getUserData(p.sender);
+        return {
+          ...p._doc,
+          userImage: image,
+          username: name,
+        };
+      });
       posts = await Promise.all(promises);
     } else {
       posts = await Post.find({ sender: req.query.sender });
     }
-    console.log({ posts });
-
     res.status(200).send(posts);
   } catch (err) {
     res.status(400).send({ error: 'fail to get posts from db' });
   }
 };
 
-async function getUserImageById(id: string) {
+async function getUserData(id: string) {
   try {
     console.log('getUserImageById');
     try {
       const user = await User.findById(id);
-      return user?.image || '';
+      return { image: user?.image || '', name: user.name };
     } catch (err) {
       console.log(err);
     }
@@ -73,7 +74,7 @@ const addNewPost = async (req: Request, res: Response) => {
     console.log('save post in db');
     res.status(200).send(newPost);
   } catch (err) {
-    console.log('fail to save post in db',err);
+    console.log('fail to save post in db', err);
     res.status(400).send({ error: 'fail adding new post to db' });
   }
 };
